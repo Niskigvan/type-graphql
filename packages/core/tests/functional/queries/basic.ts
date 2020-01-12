@@ -49,4 +49,31 @@ describe("Queries > basic", () => {
       }
     `);
   });
+
+  it("should execute resolver class async method for query", async () => {
+    @Resolver()
+    class SampleResolver {
+      @Query(_returns => String)
+      async sampleQuery(): Promise<string> {
+        await new Promise(setImmediate);
+        return "asyncSampleQueryReturnedValue";
+      }
+    }
+    const document = gql`
+      query {
+        sampleQuery
+      }
+    `;
+
+    const schema = await buildSchema({ resolvers: [SampleResolver] });
+    const result = await execute({ schema, document });
+
+    expect(result).toMatchInlineSnapshot(`
+      Object {
+        "data": Object {
+          "sampleQuery": "asyncSampleQueryReturnedValue",
+        },
+      }
+    `);
+  });
 });

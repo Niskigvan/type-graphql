@@ -7,6 +7,7 @@ import {
   GraphQLObjectType,
   GraphQLFieldConfigMap,
   GraphQLOutputType,
+  GraphQLFieldConfig,
 } from "graphql";
 import BuildSchemaOptions from "@src/schema/BuildSchemaOptions";
 import ClassType from "@src/interfaces/ClassType";
@@ -29,6 +30,8 @@ import {
   createSchemaConfig,
 } from "@src/schema/schema-config";
 import getFirstDefinedValue from "@src/helpers/getFirstDefinedValue";
+import objectFromEntries from "@src/helpers/objectFromEntries";
+import BuiltQueryMetadata from "@src/metadata/builder/definitions/QueryMetadata";
 
 const debug = createDebug("@typegraphql/core:SchemaGenerator");
 
@@ -61,21 +64,27 @@ export default class SchemaGenerator<TContext extends object = {}> {
 
     return new GraphQLObjectType({
       name: "Query",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fields: queries.reduce<GraphQLFieldConfigMap<unknown, any, object>>(
-        (fields, queryMetadata) => {
-          fields[queryMetadata.schemaName] = {
+      fields: this.getQueryFields(queries),
+    });
+  }
+
+  private getQueryFields(
+    queries: BuiltQueryMetadata[],
+  ): GraphQLFieldConfigMap<unknown, TContext, object> {
+    return objectFromEntries(
+      queries.map<[string, GraphQLFieldConfig<unknown, TContext, object>]>(
+        queryMetadata => [
+          queryMetadata.schemaName,
+          {
             type: this.getGraphQLOutputType(queryMetadata),
             description: queryMetadata.description,
             resolve: this.runtimeGenerator.generateQueryResolveHandler(
               queryMetadata,
             ),
-          };
-          return fields;
-        },
-        {},
+          },
+        ],
       ),
-    });
+    );
   }
 
   private generateOrphanedTypes(): GraphQLNamedType[] {
@@ -112,15 +121,16 @@ export default class SchemaGenerator<TContext extends object = {}> {
   private getGraphQLFields(
     fields: BuiltFieldMetadata[],
   ): GraphQLFieldConfigMap<unknown, unknown, unknown> {
-    return fields.reduce<GraphQLFieldConfigMap<unknown, unknown, unknown>>(
-      (fields, metadata) => {
-        fields[metadata.schemaName] = {
-          type: this.getGraphQLOutputType(metadata),
-          description: metadata.description,
-        };
-        return fields;
-      },
-      {},
+    return objectFromEntries(
+      fields.map<[string, GraphQLFieldConfig<unknown, unknown, unknown>]>(
+        fieldMetadata => [
+          fieldMetadata.schemaName,
+          {
+            type: this.getGraphQLOutputType(fieldMetadata),
+            description: fieldMetadata.description,
+          },
+        ],
+      ),
     );
   }
 
