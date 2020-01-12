@@ -6,21 +6,20 @@ import FieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
 import ResolverMetadata from "@src/metadata/storage/definitions/ResolverMetadata";
 import QueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
 import ParameterMetadata from "@src/metadata/storage/definitions/ParameterMetadata";
+import MetadataWeakMap from "@src/metadata/storage/MetadataWeakMap";
+import MetadataArrayWeakMap from "@src/metadata/storage/MetadataArrayWeakMap";
 
 const debug = createDebug("@typegraphql/core:MetadataStorage");
 
-// TODO: refactor to map wrappers for easier array operations and exposing collect/find methods without violating DRY
 export default class MetadataStorage {
-  protected objectTypesMetadataMap = new WeakMap<
-    ClassType,
+  protected objectTypesMetadataStorage = new MetadataWeakMap<
     ObjectTypeMetadata
   >();
-  protected fieldsMetadataMap = new WeakMap<ClassType, FieldMetadata[]>();
-  protected resolversMetadataMap = new WeakMap<ClassType, ResolverMetadata>();
-  protected queriesMetadataMap = new WeakMap<ClassType, QueryMetadata[]>();
-  protected parametersMetadataMap = new WeakMap<
-    ClassType,
-    ParameterMetadata[]
+  protected fieldsMetadataStorage = new MetadataArrayWeakMap<FieldMetadata>();
+  protected resolversMetadataStorage = new MetadataWeakMap<ResolverMetadata>();
+  protected queriesMetadataStorage = new MetadataArrayWeakMap<QueryMetadata>();
+  protected parametersMetadataStorage = new MetadataArrayWeakMap<
+    ParameterMetadata
   >();
 
   protected constructor() {
@@ -28,6 +27,7 @@ export default class MetadataStorage {
   }
 
   static get(): MetadataStorage {
+    // TODO: investigate using package scoped storage
     if (!global.TypeGraphQLMetadataStorage) {
       global.TypeGraphQLMetadataStorage = new MetadataStorage();
     }
@@ -35,53 +35,51 @@ export default class MetadataStorage {
   }
 
   collectObjectTypeMetadata(metadata: ObjectTypeMetadata): void {
-    // TODO: maybe check with `.has` to prevent duplicates?
-    this.objectTypesMetadataMap.set(metadata.target, metadata);
+    debug("collecting object type metadata", metadata);
+    this.objectTypesMetadataStorage.collect(metadata);
   }
-  findObjectTypeMetadata(typeClass: ClassType): ObjectTypeMetadata | undefined {
-    return this.objectTypesMetadataMap.get(typeClass);
+  findObjectTypeMetadata(
+    objectTypeClass: ClassType,
+  ): ObjectTypeMetadata | undefined {
+    return this.objectTypesMetadataStorage.find(objectTypeClass);
   }
 
   collectFieldMetadata(metadata: FieldMetadata): void {
-    this.fieldsMetadataMap.set(metadata.target, [
-      ...(this.fieldsMetadataMap.get(metadata.target) ?? []),
-      metadata,
-    ]);
+    debug("collecting field metadata", metadata);
+    this.fieldsMetadataStorage.collect(metadata);
   }
-  findFieldsMetadata(typeClass: ClassType): FieldMetadata[] | undefined {
-    return this.fieldsMetadataMap.get(typeClass);
+  findFieldsMetadata(objectClass: ClassType): FieldMetadata[] | undefined {
+    return this.fieldsMetadataStorage.find(objectClass);
   }
 
   collectResolverMetadata(metadata: ResolverMetadata): void {
-    this.resolversMetadataMap.set(metadata.target, metadata);
+    debug("collecting resolver metadata", metadata);
+    this.resolversMetadataStorage.collect(metadata);
   }
-  findResolverMetadata(typeClass: ClassType): ResolverMetadata | undefined {
-    return this.resolversMetadataMap.get(typeClass);
+  findResolverMetadata(resolverClass: ClassType): ResolverMetadata | undefined {
+    return this.resolversMetadataStorage.find(resolverClass);
   }
 
   collectQueryMetadata(metadata: QueryMetadata): void {
-    this.queriesMetadataMap.set(metadata.target, [
-      ...(this.queriesMetadataMap.get(metadata.target) ?? []),
-      metadata,
-    ]);
+    debug("collecting query metadata", metadata);
+    this.queriesMetadataStorage.collect(metadata);
   }
   findQueriesMetadata(resolverClass: ClassType): QueryMetadata[] | undefined {
-    return this.queriesMetadataMap.get(resolverClass);
+    return this.queriesMetadataStorage.find(resolverClass);
   }
 
   collectParameterMetadata(metadata: ParameterMetadata): void {
-    this.parametersMetadataMap.set(metadata.target, [
-      ...(this.parametersMetadataMap.get(metadata.target) ?? []),
-      metadata,
-    ]);
+    debug("collecting parameter metadata", metadata);
+    this.parametersMetadataStorage.collect(metadata);
   }
   findParametersMetadata(
     resolverClass: ClassType,
     propertyKey: string | symbol,
   ): ParameterMetadata[] | undefined {
-    const resolverClassParameters = this.parametersMetadataMap.get(
+    const resolverClassParameters = this.parametersMetadataStorage.find(
       resolverClass,
     );
+    // TODO: refactor to nested maps?
     return resolverClassParameters?.filter(
       parameterMetadata => parameterMetadata.propertyKey === propertyKey,
     );
