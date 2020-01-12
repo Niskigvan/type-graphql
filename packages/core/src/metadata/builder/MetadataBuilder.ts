@@ -89,13 +89,20 @@ export default class MetadataBuilder<TContext extends object = {}> {
 
     const builtResolverMetadata: BuiltResolverMetadata = {
       ...resolverMetadata,
-      queries: queriesMetadata.map<BuiltQueryMetadata>(queryMetadata => ({
-        ...queryMetadata,
-        type: getQueryTypeMetadata(
-          queryMetadata,
-          this.config.nullableByDefault,
-        ),
-      })),
+      queries: queriesMetadata.map<BuiltQueryMetadata>(queryMetadata => {
+        const fieldParametersMetadata = MetadataStorage.get().findParametersMetadata(
+          resolverClass,
+          queryMetadata.propertyKey,
+        );
+        return {
+          ...queryMetadata,
+          type: getQueryTypeMetadata(
+            queryMetadata,
+            this.config.nullableByDefault,
+          ),
+          parameters: fieldParametersMetadata,
+        };
+      }),
     };
 
     this.resolverMetadataByClassMap.set(resolverClass, builtResolverMetadata);

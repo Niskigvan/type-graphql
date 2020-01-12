@@ -5,6 +5,7 @@ import ObjectTypeMetadata from "@src/metadata/storage/definitions/ObjectTypeMeta
 import FieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
 import ResolverMetadata from "@src/metadata/storage/definitions/ResolverMetadata";
 import QueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
+import ParameterMetadata from "@src/metadata/storage/definitions/ParameterMetadata";
 
 const debug = createDebug("@typegraphql/core:MetadataStorage");
 
@@ -17,6 +18,10 @@ export default class MetadataStorage {
   protected fieldsMetadataMap = new WeakMap<ClassType, FieldMetadata[]>();
   protected resolversMetadataMap = new WeakMap<ClassType, ResolverMetadata>();
   protected queriesMetadataMap = new WeakMap<ClassType, QueryMetadata[]>();
+  protected parametersMetadataMap = new WeakMap<
+    ClassType,
+    ParameterMetadata[]
+  >();
 
   protected constructor() {
     debug("created MetadataStorage instance");
@@ -54,13 +59,31 @@ export default class MetadataStorage {
     return this.resolversMetadataMap.get(typeClass);
   }
 
-  collectQueryMetadata(metadata: FieldMetadata): void {
+  collectQueryMetadata(metadata: QueryMetadata): void {
     this.queriesMetadataMap.set(metadata.target, [
       ...(this.queriesMetadataMap.get(metadata.target) ?? []),
       metadata,
     ]);
   }
-  findQueriesMetadata(typeClass: ClassType): FieldMetadata[] | undefined {
-    return this.queriesMetadataMap.get(typeClass);
+  findQueriesMetadata(resolverClass: ClassType): QueryMetadata[] | undefined {
+    return this.queriesMetadataMap.get(resolverClass);
+  }
+
+  collectParameterMetadata(metadata: ParameterMetadata): void {
+    this.parametersMetadataMap.set(metadata.target, [
+      ...(this.parametersMetadataMap.get(metadata.target) ?? []),
+      metadata,
+    ]);
+  }
+  findParametersMetadata(
+    resolverClass: ClassType,
+    propertyKey: string | symbol,
+  ): ParameterMetadata[] | undefined {
+    const resolverClassParameters = this.parametersMetadataMap.get(
+      resolverClass,
+    );
+    return resolverClassParameters?.filter(
+      parameterMetadata => parameterMetadata.propertyKey === propertyKey,
+    );
   }
 }
