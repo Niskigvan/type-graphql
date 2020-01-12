@@ -62,7 +62,8 @@ describe("Queries return types > errors", () => {
     class SampleResolver {
       @Query()
       async sampleQuery(): Promise<string> {
-        return await Promise.resolve("sampleQuery");
+        await new Promise(setImmediate);
+        return "sampleQuery";
       }
     }
 
