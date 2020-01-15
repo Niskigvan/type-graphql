@@ -8,6 +8,10 @@ import {
   GraphQLFieldConfigMap,
   GraphQLOutputType,
   GraphQLFieldConfig,
+  GraphQLInputObjectType,
+  GraphQLInputFieldConfigMap,
+  GraphQLInputFieldConfig,
+  GraphQLInputType,
 } from "graphql";
 import BuildSchemaOptions from "@src/schema/BuildSchemaOptions";
 import ClassType from "@src/interfaces/ClassType";
@@ -32,6 +36,9 @@ import {
 import getFirstDefinedValue from "@src/helpers/getFirstDefinedValue";
 import objectFromEntries from "@src/helpers/objectFromEntries";
 import BuiltQueryMetadata from "@src/metadata/builder/definitions/QueryMetadata";
+import CannotDetermineInputTypeError from "@src/errors/CannotDetermineInputTypeError";
+import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import { MissingClassMetadataError } from "@src/errors";
 
 const debug = createDebug("@typegraphql/core:SchemaGenerator");
 
@@ -39,7 +46,14 @@ export default class SchemaGenerator<TContext extends object = {}> {
   private readonly config: BuildSchemaConfig<TContext>;
   private readonly metadataBuilder: MetadataBuilder<TContext>;
   private readonly runtimeGenerator: RuntimeGenerator<TContext>;
-  private readonly typeByClassMap = new WeakMap<ClassType, GraphQLObjectType>();
+  private readonly objectTypeByClassMap = new WeakMap<
+    ClassType,
+    GraphQLObjectType
+  >();
+  private readonly inputTypeByClassMap = new WeakMap<
+    ClassType,
+    GraphQLInputObjectType
+  >();
 
   constructor(options: BuildSchemaOptions<TContext>) {
     debug("created SchemaGenerator instance", options);
@@ -88,23 +102,38 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private generateOrphanedTypes(): GraphQLNamedType[] {
-    return (
-      this.config.orphanedTypes?.map(orphanedTypeClass =>
-        this.getTypeByClass(orphanedTypeClass),
-      ) ?? []
+    if (!this.config.orphanedTypes) {
+      return [];
+    }
+    return this.config.orphanedTypes.map(orphanedTypeClass => {
+      const namedType =
+        this.findObjectTypeByClass(orphanedTypeClass) ??
+        this.findInputTypeByClass(orphanedTypeClass);
+      if (!namedType) {
+        throw new MissingClassMetadataError(orphanedTypeClass);
+      }
+      return namedType;
+    });
+  }
+
+  private findObjectTypeByClass(
+    typeClass: ClassType,
+  ): GraphQLObjectType | undefined {
+    const objectTypeMetadata = MetadataStorage.get().findObjectTypeMetadata(
+      typeClass,
     );
+    if (!objectTypeMetadata) {
+      return undefined;
+    }
+    return this.getObjectTypeByClass(typeClass);
   }
 
-  private findTypeByClass(typeClass: ClassType): GraphQLObjectType | undefined {
-    return this.typeByClassMap.get(typeClass);
-  }
-
-  private getTypeByClass(typeClass: ClassType): GraphQLObjectType {
-    if (this.typeByClassMap.has(typeClass)) {
-      return this.typeByClassMap.get(typeClass)!;
+  private getObjectTypeByClass(typeClass: ClassType): GraphQLObjectType {
+    if (this.objectTypeByClassMap.has(typeClass)) {
+      return this.objectTypeByClassMap.get(typeClass)!;
     }
 
-    const objectTypeMetadata = this.metadataBuilder.getTypeMetadataByClass(
+    const objectTypeMetadata = this.metadataBuilder.getObjectTypeMetadataByClass(
       typeClass,
     );
 
@@ -114,8 +143,39 @@ export default class SchemaGenerator<TContext extends object = {}> {
       fields: this.getGraphQLFields(objectTypeMetadata.fields),
     });
 
-    this.typeByClassMap.set(typeClass, objectType);
+    this.objectTypeByClassMap.set(typeClass, objectType);
     return objectType;
+  }
+
+  private findInputTypeByClass(
+    typeClass: ClassType,
+  ): GraphQLInputObjectType | undefined {
+    const inputTypeMetadata = MetadataStorage.get().findInputTypeMetadata(
+      typeClass,
+    );
+    if (!inputTypeMetadata) {
+      return undefined;
+    }
+    return this.getInputTypeByClass(typeClass);
+  }
+
+  private getInputTypeByClass(typeClass: ClassType): GraphQLInputObjectType {
+    if (this.inputTypeByClassMap.has(typeClass)) {
+      return this.inputTypeByClassMap.get(typeClass)!;
+    }
+
+    const inputTypeMetadata = this.metadataBuilder.getInputTypeMetadataByClass(
+      typeClass,
+    );
+
+    const inputType = new GraphQLInputObjectType({
+      name: inputTypeMetadata.schemaName,
+      description: inputTypeMetadata.description,
+      fields: this.getGraphQLInputFields(inputTypeMetadata.fields),
+    });
+
+    this.inputTypeByClassMap.set(typeClass, inputType);
+    return inputType;
   }
 
   private getGraphQLFields(
@@ -131,6 +191,20 @@ export default class SchemaGenerator<TContext extends object = {}> {
           },
         ],
       ),
+    );
+  }
+
+  private getGraphQLInputFields(
+    fields: BuiltFieldMetadata[],
+  ): GraphQLInputFieldConfigMap {
+    return objectFromEntries(
+      fields.map<[string, GraphQLInputFieldConfig]>(fieldMetadata => [
+        fieldMetadata.schemaName,
+        {
+          type: this.getGraphQLInputType(fieldMetadata),
+          description: fieldMetadata.description,
+        },
+      ]),
     );
   }
 
@@ -151,9 +225,33 @@ export default class SchemaGenerator<TContext extends object = {}> {
   ): Generator<GraphQLOutputType | undefined, void, void> {
     yield convertTypeIfScalar(typeValue);
     if (typeof typeValue === "function") {
-      yield this.findTypeByClass(typeValue as ClassType);
+      yield this.findObjectTypeByClass(typeValue as ClassType);
     }
     if (typeValue instanceof GraphQLObjectType) {
+      yield typeValue;
+    }
+  }
+
+  private getGraphQLInputType(
+    metadata: TargetMetadata & PropertyMetadata & BuiltTypeMetadata,
+  ): GraphQLInputType {
+    const inputType = getFirstDefinedValue(
+      this.searchForGraphQLInputType(metadata.type.value),
+    );
+    if (!inputType) {
+      throw new CannotDetermineInputTypeError(metadata);
+    }
+    return wrapWithModifiers(inputType, metadata.type.modifiers);
+  }
+
+  private *searchForGraphQLInputType(
+    typeValue: TypeValue,
+  ): Generator<GraphQLInputType | undefined, void, void> {
+    yield convertTypeIfScalar(typeValue);
+    if (typeof typeValue === "function") {
+      yield this.findInputTypeByClass(typeValue as ClassType);
+    }
+    if (typeValue instanceof GraphQLInputObjectType) {
       yield typeValue;
     }
   }

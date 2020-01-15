@@ -1,7 +1,8 @@
+export { default as Context } from "@src/decorators/Context";
 export { default as createParamDecorator } from "@src/decorators/createParamDecorator";
 export { default as Field, FieldOptions } from "@src/decorators/Field";
-export { default as Context } from "@src/decorators/Context";
 export { default as Info } from "@src/decorators/Info";
+export { default as InputType } from "@src/decorators/InputType";
 export {
   default as ObjectType,
   ObjectTypeOptions,

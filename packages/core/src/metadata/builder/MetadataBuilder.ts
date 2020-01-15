@@ -14,13 +14,18 @@ import BuiltResolverMetadata from "@src/metadata/builder/definitions/ResolverMet
 import BuiltQueryMetadata from "@src/metadata/builder/definitions/QueryMetadata";
 import MissingResolverMethodsError from "@src/errors/MissingResolverMethodsError";
 import { BuildSchemaConfig } from "@src/schema/schema-config";
+import BuiltInputTypeMetadata from "@src/metadata/builder/definitions/InputTypeMetadata";
 
 const debug = createDebug("@typegraphql/core:MetadataBuilder");
 
 export default class MetadataBuilder<TContext extends object = {}> {
-  private readonly typeMetadataByClassMap = new WeakMap<
+  private readonly objectTypeMetadataByClassMap = new WeakMap<
     ClassType,
     BuiltObjectTypeMetadata
+  >();
+  private readonly inputTypeMetadataByClassMap = new WeakMap<
+    ClassType,
+    BuiltInputTypeMetadata
   >();
   private readonly resolverMetadataByClassMap = new WeakMap<
     ClassType,
@@ -31,9 +36,9 @@ export default class MetadataBuilder<TContext extends object = {}> {
     debug("created MetadataBuilder instance", config);
   }
 
-  getTypeMetadataByClass(typeClass: ClassType): BuiltObjectTypeMetadata {
-    if (this.typeMetadataByClassMap.has(typeClass)) {
-      return this.typeMetadataByClassMap.get(typeClass)!;
+  getObjectTypeMetadataByClass(typeClass: ClassType): BuiltObjectTypeMetadata {
+    if (this.objectTypeMetadataByClassMap.has(typeClass)) {
+      return this.objectTypeMetadataByClassMap.get(typeClass)!;
     }
 
     const objectTypeMetadata = MetadataStorage.get().findObjectTypeMetadata(
@@ -50,6 +55,7 @@ export default class MetadataBuilder<TContext extends object = {}> {
       throw new MissingFieldsError(typeClass);
     }
 
+    // TODO: refactor to a more generalized solution
     const builtObjectTypeMetadata: BuiltObjectTypeMetadata = {
       ...objectTypeMetadata,
       fields: objectTypeFieldsMetadata.map<BuiltFieldMetadata>(
@@ -63,8 +69,45 @@ export default class MetadataBuilder<TContext extends object = {}> {
       ),
     };
 
-    this.typeMetadataByClassMap.set(typeClass, builtObjectTypeMetadata);
+    this.objectTypeMetadataByClassMap.set(typeClass, builtObjectTypeMetadata);
     return builtObjectTypeMetadata;
+  }
+
+  getInputTypeMetadataByClass(typeClass: ClassType): BuiltInputTypeMetadata {
+    if (this.inputTypeMetadataByClassMap.has(typeClass)) {
+      return this.inputTypeMetadataByClassMap.get(typeClass)!;
+    }
+
+    const inputTypeMetadata = MetadataStorage.get().findInputTypeMetadata(
+      typeClass,
+    );
+    if (!inputTypeMetadata) {
+      throw new MissingClassMetadataError(typeClass, "InputType");
+    }
+
+    const inputTypeFieldsMetadata = MetadataStorage.get().findFieldsMetadata(
+      typeClass,
+    );
+    if (!inputTypeFieldsMetadata || inputTypeFieldsMetadata.length === 0) {
+      throw new MissingFieldsError(typeClass);
+    }
+
+    // TODO: refactor to a more generalized solution
+    const builtInputTypeMetadata: BuiltInputTypeMetadata = {
+      ...inputTypeMetadata,
+      fields: inputTypeFieldsMetadata.map<BuiltFieldMetadata>(
+        fieldMetadata => ({
+          ...fieldMetadata,
+          type: getFieldTypeMetadata(
+            fieldMetadata,
+            this.config.nullableByDefault,
+          ),
+        }),
+      ),
+    };
+
+    this.inputTypeMetadataByClassMap.set(typeClass, builtInputTypeMetadata);
+    return builtInputTypeMetadata;
   }
 
   getResolverMetadataByClass(resolverClass: ClassType): BuiltResolverMetadata {

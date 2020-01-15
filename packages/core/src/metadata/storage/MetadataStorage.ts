@@ -8,12 +8,16 @@ import QueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
 import ParameterMetadata from "@src/metadata/storage/definitions/ParameterMetadata";
 import MetadataWeakMap from "@src/metadata/storage/MetadataWeakMap";
 import MetadataArrayWeakMap from "@src/metadata/storage/MetadataArrayWeakMap";
+import InputTypeMetadata from "@src/metadata/storage/definitions/InputTypeMetadata";
 
 const debug = createDebug("@typegraphql/core:MetadataStorage");
 
 export default class MetadataStorage {
   protected objectTypesMetadataStorage = new MetadataWeakMap<
     ObjectTypeMetadata
+  >();
+  protected inputTypesMetadataStorage = new MetadataWeakMap<
+    InputTypeMetadata
   >();
   protected fieldsMetadataStorage = new MetadataArrayWeakMap<FieldMetadata>();
   protected resolversMetadataStorage = new MetadataWeakMap<ResolverMetadata>();
@@ -42,6 +46,16 @@ export default class MetadataStorage {
     objectTypeClass: ClassType,
   ): ObjectTypeMetadata | undefined {
     return this.objectTypesMetadataStorage.find(objectTypeClass);
+  }
+
+  collectInputTypeMetadata(metadata: InputTypeMetadata): void {
+    debug("collecting input type metadata", metadata);
+    this.inputTypesMetadataStorage.collect(metadata);
+  }
+  findInputTypeMetadata(
+    inputTypeClass: ClassType,
+  ): InputTypeMetadata | undefined {
+    return this.inputTypesMetadataStorage.find(inputTypeClass);
   }
 
   collectFieldMetadata(metadata: FieldMetadata): void {

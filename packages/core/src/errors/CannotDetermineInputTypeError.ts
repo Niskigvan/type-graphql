@@ -5,9 +5,9 @@ import {
 import { BuiltTypeMetadata } from "@src/metadata/builder/definitions/common";
 import CannotDetermineTypeError from "@src/errors/CannotDetermineTypeError";
 
-export default class CannotDetermineOutputTypeError extends CannotDetermineTypeError {
+export default class CannotDetermineInputTypeError extends CannotDetermineTypeError {
   constructor(metadata: TargetMetadata & PropertyMetadata & BuiltTypeMetadata) {
-    super("output", metadata);
+    super("input", metadata);
 
     Object.setPrototypeOf(this, new.target.prototype);
   }
