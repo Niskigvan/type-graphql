@@ -3,11 +3,12 @@ import {
   MissingSymbolKeyDescriptionError,
   ConflictingExplicitTypeOptions,
 } from "@src/errors";
-import { ExplicitTypeable } from "@src/decorators/types";
+import { ExplicitTypeable, Nameable } from "@src/decorators/types";
 import {
   TargetMetadata,
   PropertyMetadata,
 } from "@src/metadata/storage/definitions/common";
+import parseStringOrSymbol from "@src/helpers/parseStringOrSymbol";
 
 export interface TypeDecoratorParams<TOptions extends ExplicitTypeable> {
   options?: Omit<TOptions, keyof ExplicitTypeable>;
@@ -35,20 +36,14 @@ export function parseDecoratorParameters<TOptions extends ExplicitTypeable>(
   };
 }
 
-const SYMBOL_DESCRIPTION_START_INDEX = 7;
-
-export function parseStringOrSymbol(stringOrSymbol: string | symbol): string {
-  if (typeof stringOrSymbol === "string") {
-    return stringOrSymbol;
+export function getSchemaName(
+  options: Nameable,
+  propertyKey: string | symbol,
+  metadata: TargetMetadata,
+): string {
+  const schemaName = options.schemaName ?? parseStringOrSymbol(propertyKey);
+  if (!schemaName) {
+    throw new MissingSymbolKeyDescriptionError(metadata);
   }
-
-  // TODO: use `Symbol.prototype.description`
-  const symbolDescription = stringOrSymbol
-    .toString()
-    .slice(SYMBOL_DESCRIPTION_START_INDEX, -1);
-  if (symbolDescription) {
-    return symbolDescription;
-  }
-
-  throw new MissingSymbolKeyDescriptionError();
+  return schemaName;
 }

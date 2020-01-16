@@ -3,7 +3,7 @@ import MetadataStorage from "@src/metadata/storage/MetadataStorage";
 import ExplicitTypeFn from "@src/interfaces/ExplicitTypeFn";
 import {
   parseDecoratorParameters,
-  parseStringOrSymbol,
+  getSchemaName,
 } from "@src/decorators/helpers";
 import {
   Nameable,
@@ -56,7 +56,7 @@ export default function Field(
     MetadataStorage.get().collectFieldMetadata({
       target,
       propertyKey,
-      schemaName: options.schemaName ?? parseStringOrSymbol(propertyKey),
+      schemaName: getSchemaName(options, propertyKey, { target }),
       description: options.description,
       nullable: options.nullable,
       explicitTypeFn,

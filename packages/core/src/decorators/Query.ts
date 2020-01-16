@@ -9,7 +9,7 @@ import {
 import ExplicitTypeFn from "@src/interfaces/ExplicitTypeFn";
 import {
   parseDecoratorParameters,
-  parseStringOrSymbol,
+  getSchemaName,
 } from "@src/decorators/helpers";
 import ClassType from "@src/interfaces/ClassType";
 
@@ -56,7 +56,7 @@ export default function Query(
     MetadataStorage.get().collectQueryMetadata({
       target,
       propertyKey,
-      schemaName: options.schemaName ?? parseStringOrSymbol(propertyKey),
+      schemaName: getSchemaName(options, propertyKey, { target }),
       description: options.description,
       nullable: options.nullable,
       explicitTypeFn,
