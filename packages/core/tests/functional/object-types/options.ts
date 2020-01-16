@@ -7,7 +7,7 @@ describe("Object types > options", () => {
   it("should correctly generate type name using `schemaName` decorator option", async () => {
     @ObjectType({ schemaName: "SampleObjectSchemaName" })
     class SampleObject {
-      @Field(_type => String)
+      @Field()
       sampleField!: string;
     }
 
@@ -26,7 +26,7 @@ describe("Object types > options", () => {
   it("should correctly generate type description using `description` decorator option", async () => {
     @ObjectType({ description: "SampleObject description" })
     class SampleObject {
-      @Field(_type => String)
+      @Field()
       sampleField!: string;
     }
 

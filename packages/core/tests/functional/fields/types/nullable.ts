@@ -7,7 +7,7 @@ describe("Fields types > nullable", () => {
   it("should correctly generate nullable field in schema using `nullable: true` decorator option", async () => {
     @ObjectType()
     class SampleObject {
-      @Field(_type => String, { nullable: true })
+      @Field({ nullable: true })
       sampleField!: string;
     }
 
@@ -23,7 +23,7 @@ describe("Fields types > nullable", () => {
   it("should correctly generate nullable field in schema using `nullableByDefault: true` build schema option", async () => {
     @ObjectType()
     class SampleObject {
-      @Field(_type => String)
+      @Field()
       sampleField!: string;
     }
 
@@ -43,7 +43,7 @@ describe("Fields types > nullable", () => {
   it("should correctly generate not nullable field in schema when `nullableByDefault: true` and `nullable: false`", async () => {
     @ObjectType()
     class SampleObject {
-      @Field(_type => String, { nullable: false })
+      @Field({ nullable: false })
       sampleField!: string;
     }
 
