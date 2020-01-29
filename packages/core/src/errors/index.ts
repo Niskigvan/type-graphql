@@ -6,3 +6,6 @@ export { default as MissingExplicitTypeError } from "@src/errors/MissingExplicit
 export { default as MissingFieldsError } from "@src/errors/MissingFieldsError";
 export { default as MissingResolverMethodsError } from "@src/errors/MissingResolverMethodsError";
 export { default as MissingSymbolKeyDescriptionError } from "@src/errors/MissingSymbolKeyDescriptionError";
+export { default as MultipleArgsUsageError } from "@src/errors/MultipleArgsUsageError";
+export { default as SimultaneousArgsUsageError } from "@src/errors/SimultaneousArgsUsageError";
+export { default as WrongArgsTypeError } from "@src/errors/WrongArgsTypeError";

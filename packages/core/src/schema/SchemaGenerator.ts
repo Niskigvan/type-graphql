@@ -1,5 +1,4 @@
 import createDebug from "debug";
-
 import {
   GraphQLSchema,
   GraphQLNamedType,
@@ -11,6 +10,8 @@ import {
   GraphQLInputFieldConfigMap,
   GraphQLInputFieldConfig,
   GraphQLInputType,
+  GraphQLArgumentConfig,
+  GraphQLFieldConfigArgumentMap,
 } from "graphql";
 
 import MetadataBuilder from "@src/metadata/builder/MetadataBuilder";
@@ -27,6 +28,8 @@ import CannotDetermineOutputTypeError from "@src/errors/CannotDetermineOutputTyp
 import {
   TargetMetadata,
   PropertyMetadata,
+  SchemaNameMetadata,
+  DescriptionMetadata,
 } from "@src/metadata/storage/definitions/common";
 import flatten from "@src/helpers/flatten";
 import RuntimeGenerator from "@src/runtime/RuntimeGenerator";
@@ -40,6 +43,10 @@ import QueryMetadata from "@src/interfaces/metadata/QueryMetadata";
 import CannotDetermineInputTypeError from "@src/errors/CannotDetermineInputTypeError";
 import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 import MissingClassMetadataError from "@src/errors/MissingClassMetadataError";
+import ParamKind from "@src/interfaces/ParamKind";
+import ParameterMetadata from "@src/interfaces/metadata/parameters/ParameterMetadata";
+import SpreadArgsParameterMetadata from "@src/interfaces/metadata/parameters/SpreadArgsParameterMetadata";
+import SingleArgParamterMetadata from "@src/interfaces/metadata/parameters/SingleArgParameterMetadata";
 
 const debug = createDebug("@typegraphql/core:SchemaGenerator");
 
@@ -96,9 +103,53 @@ export default class SchemaGenerator<TContext extends object = {}> {
             resolve: this.runtimeGenerator.generateQueryResolveHandler(
               queryMetadata,
             ),
+            args: this.getArgumentConfigFromParameters(
+              queryMetadata.parameters,
+            ),
           },
         ],
       ),
+    );
+  }
+
+  private getArgumentConfigFromParameters(
+    parameters: ParameterMetadata[],
+  ): GraphQLFieldConfigArgumentMap {
+    const spreadArgsMetadata = parameters.find(
+      it => it.kind === ParamKind.SpreadArgs,
+    ) as SpreadArgsParameterMetadata | undefined;
+    if (spreadArgsMetadata) {
+      const spreadArgsInputTypeMetadata = this.metadataBuilder.getInputTypeMetadataByClass(
+        spreadArgsMetadata.type.value as ClassType, // checked in MetadataBuilder
+      );
+      return this.getArgumentConfigFromMetadata(
+        spreadArgsInputTypeMetadata.fields,
+      );
+    }
+
+    const singleArgMetadata = parameters.filter(
+      it => it.kind === ParamKind.SingleArg,
+    ) as SingleArgParamterMetadata[];
+    return this.getArgumentConfigFromMetadata(singleArgMetadata);
+  }
+
+  private getArgumentConfigFromMetadata(
+    metadata: Array<
+      SchemaNameMetadata &
+        DescriptionMetadata &
+        TypeMetadata &
+        TargetMetadata &
+        PropertyMetadata
+    >,
+  ): GraphQLFieldConfigArgumentMap {
+    return objectFromEntries(
+      metadata.map<[string, GraphQLArgumentConfig]>(paramterMetadata => [
+        paramterMetadata.schemaName,
+        {
+          type: this.getGraphQLInputType(paramterMetadata),
+          description: paramterMetadata.description,
+        },
+      ]),
     );
   }
 

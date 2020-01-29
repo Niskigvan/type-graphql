@@ -10,6 +10,8 @@ import TypeValue from "@src/interfaces/TypeValue";
 import { ExplicitTypeFnValue } from "@src/interfaces/ExplicitTypeFn";
 import MissingExplicitTypeError from "@src/errors/MissingExplicitTypeError";
 import RawQueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
+import RawSpreadArgsParameterMetadata from "@src/metadata/storage/definitions/parameters/SpreadArgsParameterMetadata";
+import RawSingleArgParameterMetadata from "@src/metadata/storage/definitions/parameters/SingleArgParamterMetadata";
 import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/ParameterMetadata";
 
 const bannedReflectedTypes: Function[] = [Promise, Array, Object, Function];
@@ -31,6 +33,17 @@ function getReflectedMethodType(
     metadata.target.prototype,
     metadata.propertyKey,
   );
+}
+
+function getReflectedParameterType(
+  metadata: RawParameterMetadata,
+): Function | undefined {
+  const parametersTypes = Reflect.getMetadata(
+    "design:paramtypes",
+    metadata.target.prototype,
+    metadata.propertyKey,
+  );
+  return parametersTypes?.[metadata.parameterIndex];
 }
 
 function unwrapExplicitType(
@@ -87,4 +100,14 @@ export function getQueryTypeMetadata(
 ): TypeInfo {
   const reflectedType = getReflectedMethodType(queryMetadata);
   return getTypeMetadata(queryMetadata, nullableByDefault, reflectedType);
+}
+
+export function getQueryParameterTypeMetadata(
+  parameterMetadata:
+    | RawSingleArgParameterMetadata
+    | RawSpreadArgsParameterMetadata,
+  nullableByDefault: boolean,
+): TypeInfo {
+  const reflectedType = getReflectedParameterType(parameterMetadata);
+  return getTypeMetadata(parameterMetadata, nullableByDefault, reflectedType);
 }

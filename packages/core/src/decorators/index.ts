@@ -1,3 +1,8 @@
+export {
+  default as Args,
+  SingleArgOptions,
+  SpreadArgsOptions,
+} from "@src/decorators/Args";
 export { default as Context } from "@src/decorators/Context";
 export { default as createParamDecorator } from "@src/decorators/createParamDecorator";
 export { default as Field, FieldOptions } from "@src/decorators/Field";

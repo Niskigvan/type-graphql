@@ -8,6 +8,11 @@
     "typescript.tsdk": "root/node_modules/typescript/lib",
     "eslint.enable": true,
     "eslint.validate": ["typescript", "typescriptreact"],
-    "cSpell.words": ["typegraphql"]
+    "cSpell.words": [
+      "paramtypes",
+      "returntype",
+      "typegraphql",
+      "zerollup"
+    ]
   }
 }

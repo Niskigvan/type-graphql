@@ -1,7 +1,10 @@
 import StandardParameterMetadata from "@src/interfaces/metadata/parameters/StandardParameterMetadata";
+import SingleArgParameterMetadata from "@src/interfaces/metadata/parameters/SingleArgParameterMetadata";
+import SpreadArgsParameterMetadata from "@src/interfaces/metadata/parameters/SpreadArgsParameterMetadata";
 
-// TODO: add more types here
-// eslint-disable-next-line @typescript-eslint/no-type-alias
-type ParameterMetadata = StandardParameterMetadata;
+type ParameterMetadata =
+  | StandardParameterMetadata
+  | SingleArgParameterMetadata
+  | SpreadArgsParameterMetadata;
 
 export default ParameterMetadata;

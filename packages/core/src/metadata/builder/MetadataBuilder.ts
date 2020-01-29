@@ -7,6 +7,7 @@ import FieldMetadata from "@src/interfaces/metadata/FieldMetadata";
 import {
   getFieldTypeMetadata,
   getQueryTypeMetadata,
+  getQueryParameterTypeMetadata,
 } from "@src/metadata/builder/type-reflection";
 import MissingClassMetadataError from "@src/errors/MissingClassMetadataError";
 import MissingFieldsError from "@src/errors/MissingFieldsError";
@@ -15,6 +16,12 @@ import QueryMetadata from "@src/interfaces/metadata/QueryMetadata";
 import MissingResolverMethodsError from "@src/errors/MissingResolverMethodsError";
 import { BuildSchemaConfig } from "@src/schema/schema-config";
 import InputTypeMetadata from "@src/interfaces/metadata/InputTypeMetadata";
+import ParamKind from "@src/interfaces/ParamKind";
+import ParameterMetadata from "@src/interfaces/metadata/parameters/ParameterMetadata";
+import isTypeValueClassType from "@src/helpers/isTypeValueClassType";
+import SimultaneousArgsUsageError from "@src/errors/SimultaneousArgsUsageError";
+import WrongArgsTypeError from "@src/errors/WrongArgsTypeError";
+import MultipleArgsUsageError from "@src/errors/MultipleArgsUsageError";
 
 const debug = createDebug("@typegraphql/core:MetadataBuilder");
 
@@ -140,13 +147,57 @@ export default class MetadataBuilder<TContext extends object = {}> {
             resolverClass,
             rawQueryMetadata.propertyKey,
           ) ?? [];
+        const spreadArgsMetadataLength = rawQueryParametersMetadata.filter(
+          it => it.kind === ParamKind.SpreadArgs,
+        ).length;
+        if (spreadArgsMetadataLength > 1) {
+          throw new MultipleArgsUsageError(rawQueryMetadata);
+        }
+        const singleArgMetadataLength = rawQueryParametersMetadata.filter(
+          it => it.kind === ParamKind.SingleArg,
+        ).length;
+        if (spreadArgsMetadataLength && singleArgMetadataLength) {
+          throw new SimultaneousArgsUsageError(rawQueryMetadata);
+        }
         return {
           ...rawQueryMetadata,
           type: getQueryTypeMetadata(
             rawQueryMetadata,
             this.config.nullableByDefault,
           ),
-          parameters: rawQueryParametersMetadata,
+          parameters: rawQueryParametersMetadata.map<ParameterMetadata>(
+            parameterMetadata => {
+              switch (parameterMetadata.kind) {
+                case ParamKind.SingleArg: {
+                  return {
+                    ...parameterMetadata,
+                    type: getQueryParameterTypeMetadata(
+                      parameterMetadata,
+                      this.config.nullableByDefault,
+                    ),
+                  };
+                }
+                case ParamKind.SpreadArgs: {
+                  const type = getQueryParameterTypeMetadata(
+                    parameterMetadata,
+                    this.config.nullableByDefault,
+                  );
+                  if (
+                    !isTypeValueClassType(type.value) ||
+                    type.modifiers.listDepth > 0
+                  ) {
+                    throw new WrongArgsTypeError(parameterMetadata);
+                  }
+                  return {
+                    ...parameterMetadata,
+                    type,
+                  };
+                }
+                default:
+                  return parameterMetadata;
+              }
+            },
+          ),
         };
       }),
     };
