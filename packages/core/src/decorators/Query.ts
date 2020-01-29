@@ -1,5 +1,5 @@
 import TypedMethodDecorator from "@src/interfaces/TypedMethodDecorator";
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 import {
   Nameable,
   ExplicitTypeable,
@@ -53,7 +53,7 @@ export default function Query(
         propertyKey,
       },
     );
-    MetadataStorage.get().collectQueryMetadata({
+    RawMetadataStorage.get().collectQueryMetadata({
       target,
       propertyKey,
       schemaName: getSchemaName(options, propertyKey, { target }),

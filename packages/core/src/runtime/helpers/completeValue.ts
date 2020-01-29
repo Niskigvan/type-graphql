@@ -1,4 +1,4 @@
-import isPromiseLike from "@src/helpers/isPromiseLike";
+import isPromiseLike from "@src/runtime/helpers/isPromiseLike";
 
 /**
  * Helper for allowing using async execution path

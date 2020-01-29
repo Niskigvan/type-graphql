@@ -1,5 +1,5 @@
-import FieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
-import { TypeMetadata } from "@src/metadata/builder/definitions/TypeMetadata";
+import RawFieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
+import { TypeInfo } from "@src/interfaces/metadata/TypeMetadata";
 import {
   PropertyMetadata,
   TargetMetadata,
@@ -9,33 +9,28 @@ import {
 import TypeValue from "@src/interfaces/TypeValue";
 import { ExplicitTypeFnValue } from "@src/interfaces/ExplicitTypeFn";
 import MissingExplicitTypeError from "@src/errors/MissingExplicitTypeError";
-import QueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
+import RawQueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
+import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/ParameterMetadata";
 
 const bannedReflectedTypes: Function[] = [Promise, Array, Object, Function];
 
-function getReflectedType(
-  kind: "property" | "method" | "param",
+function getReflectedPropertyType(
   metadata: PropertyMetadata & TargetMetadata,
 ): Function | undefined {
-  switch (kind) {
-    case "property": {
-      return Reflect.getMetadata(
-        "design:type",
-        metadata.target.prototype,
-        metadata.propertyKey,
-      );
-    }
-    case "method": {
-      return Reflect.getMetadata(
-        "design:returntype",
-        metadata.target.prototype,
-        metadata.propertyKey,
-      );
-    }
-    default:
-      // TODO: implement other cases
-      return undefined;
-  }
+  return Reflect.getMetadata(
+    "design:type",
+    metadata.target.prototype,
+    metadata.propertyKey,
+  );
+}
+function getReflectedMethodType(
+  metadata: PropertyMetadata & TargetMetadata,
+): Function | undefined {
+  return Reflect.getMetadata(
+    "design:returntype",
+    metadata.target.prototype,
+    metadata.propertyKey,
+  );
 }
 
 function unwrapExplicitType(
@@ -54,10 +49,11 @@ function getTypeMetadata(
   metadata: TargetMetadata &
     PropertyMetadata &
     ExplicitTypeMetadata &
-    NullableMetadata,
+    NullableMetadata &
+    Partial<RawParameterMetadata>,
   nullableByDefault: boolean,
   reflectedType: Function | undefined,
-): TypeMetadata {
+): TypeInfo {
   const { explicitType, listDepth } = unwrapExplicitType(
     metadata.explicitTypeFn?.(),
   );
@@ -78,17 +74,17 @@ function getTypeMetadata(
 }
 
 export function getFieldTypeMetadata(
-  fieldMetadata: FieldMetadata,
+  fieldMetadata: RawFieldMetadata,
   nullableByDefault: boolean,
-): TypeMetadata {
-  const reflectedType = getReflectedType("property", fieldMetadata);
+): TypeInfo {
+  const reflectedType = getReflectedPropertyType(fieldMetadata);
   return getTypeMetadata(fieldMetadata, nullableByDefault, reflectedType);
 }
 
 export function getQueryTypeMetadata(
-  queryMetadata: QueryMetadata,
+  queryMetadata: RawQueryMetadata,
   nullableByDefault: boolean,
-): TypeMetadata {
-  const reflectedType = getReflectedType("method", queryMetadata);
+): TypeInfo {
+  const reflectedType = getReflectedMethodType(queryMetadata);
   return getTypeMetadata(queryMetadata, nullableByDefault, reflectedType);
 }

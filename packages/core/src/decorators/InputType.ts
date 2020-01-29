@@ -1,4 +1,4 @@
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 import TypedClassDecorator from "@src/interfaces/TypedClassDecorator";
 import { Nameable, Descriptionable } from "@src/decorators/types";
 
@@ -17,7 +17,7 @@ export default function InputType(
   options: InputTypeOptions = {},
 ): TypedClassDecorator {
   return target => {
-    MetadataStorage.get().collectInputTypeMetadata({
+    RawMetadataStorage.get().collectInputTypeMetadata({
       target,
       schemaName: options.schemaName ?? target.name,
       description: options.description,

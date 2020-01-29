@@ -2,7 +2,7 @@ import {
   PropertyMetadata,
   TargetMetadata,
 } from "@src/metadata/storage/definitions/common";
-import { BuiltTypeMetadata } from "@src/metadata/builder/definitions/common";
+import { TypeMetadata } from "@src/interfaces/metadata/common";
 
 export default class CannotDetermineTypeError extends Error {
   constructor(
@@ -11,7 +11,7 @@ export default class CannotDetermineTypeError extends Error {
       target,
       propertyKey,
       type,
-    }: TargetMetadata & PropertyMetadata & BuiltTypeMetadata,
+    }: TargetMetadata & PropertyMetadata & TypeMetadata,
   ) {
     // TODO: add support for other kind of types
     const typeName =

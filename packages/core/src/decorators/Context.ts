@@ -1,13 +1,14 @@
 import createParameterDecorator from "@src/decorators/createParamDecorator";
-import ParameterResolver from "@src/interfaces/ParameterResolver";
-import ResolverData from "@src/interfaces/ResolverData";
+import ContextParameterResolver from "@src/runtime/parameters/ContextResolver";
 
-class ContextParameterResolver implements ParameterResolver {
-  resolve({ context }: ResolverData): unknown {
-    return context;
-  }
-}
-
+/**
+ * Parameter decorator that can be used
+ * to inject `context` property of resolver data
+ * into the resolver handler
+ *
+ * @example
+ * `sampleQuery(@Context() context: ContextType): unknown {}`
+ */
 export default function Context(): ParameterDecorator {
   return createParameterDecorator(ContextParameterResolver);
 }

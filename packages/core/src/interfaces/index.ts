@@ -1,3 +1,4 @@
+export * from "./metadata";
 export { default as ClassType } from "./ClassType";
 export { ContainerGetter, ContainerType } from "./container";
 export { default as ExplicitTypeFn } from "./ExplicitTypeFn";

@@ -1,5 +1,5 @@
 import TypedPropertyDecorator from "@src/interfaces/TypedPropertyDecorator";
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 import ExplicitTypeFn from "@src/interfaces/ExplicitTypeFn";
 import {
   parseDecoratorParameters,
@@ -53,7 +53,7 @@ export default function Field(
         propertyKey,
       },
     );
-    MetadataStorage.get().collectFieldMetadata({
+    RawMetadataStorage.get().collectFieldMetadata({
       target,
       propertyKey,
       schemaName: getSchemaName(options, propertyKey, { target }),

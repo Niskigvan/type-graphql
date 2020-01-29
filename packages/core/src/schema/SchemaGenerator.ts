@@ -1,6 +1,5 @@
 import createDebug from "debug";
 
-import MetadataBuilder from "@src/metadata/builder/MetadataBuilder";
 import {
   GraphQLSchema,
   GraphQLNamedType,
@@ -13,6 +12,8 @@ import {
   GraphQLInputFieldConfig,
   GraphQLInputType,
 } from "graphql";
+
+import MetadataBuilder from "@src/metadata/builder/MetadataBuilder";
 import BuildSchemaOptions from "@src/schema/BuildSchemaOptions";
 import ClassType from "@src/interfaces/ClassType";
 import {
@@ -20,8 +21,8 @@ import {
   convertTypeIfScalar,
 } from "@src/schema/type-converting";
 import TypeValue from "@src/interfaces/TypeValue";
-import BuiltFieldMetadata from "@src/metadata/builder/definitions/FieldMetadata";
-import { BuiltTypeMetadata } from "@src/metadata/builder/definitions/common";
+import FieldMetadata from "@src/interfaces/metadata/FieldMetadata";
+import { TypeMetadata } from "@src/interfaces/metadata/common";
 import CannotDetermineOutputTypeError from "@src/errors/CannotDetermineOutputTypeError";
 import {
   TargetMetadata,
@@ -35,10 +36,10 @@ import {
 } from "@src/schema/schema-config";
 import getFirstDefinedValue from "@src/helpers/getFirstDefinedValue";
 import objectFromEntries from "@src/helpers/objectFromEntries";
-import BuiltQueryMetadata from "@src/metadata/builder/definitions/QueryMetadata";
+import QueryMetadata from "@src/interfaces/metadata/QueryMetadata";
 import CannotDetermineInputTypeError from "@src/errors/CannotDetermineInputTypeError";
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
-import { MissingClassMetadataError } from "@src/errors";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
+import MissingClassMetadataError from "@src/errors/MissingClassMetadataError";
 
 const debug = createDebug("@typegraphql/core:SchemaGenerator");
 
@@ -83,7 +84,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getQueryFields(
-    queries: BuiltQueryMetadata[],
+    queries: QueryMetadata[],
   ): GraphQLFieldConfigMap<unknown, TContext, object> {
     return objectFromEntries(
       queries.map<[string, GraphQLFieldConfig<unknown, TContext, object>]>(
@@ -119,7 +120,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   private findObjectTypeByClass(
     typeClass: ClassType,
   ): GraphQLObjectType | undefined {
-    const objectTypeMetadata = MetadataStorage.get().findObjectTypeMetadata(
+    const objectTypeMetadata = RawMetadataStorage.get().findObjectTypeMetadata(
       typeClass,
     );
     if (!objectTypeMetadata) {
@@ -150,7 +151,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   private findInputTypeByClass(
     typeClass: ClassType,
   ): GraphQLInputObjectType | undefined {
-    const inputTypeMetadata = MetadataStorage.get().findInputTypeMetadata(
+    const inputTypeMetadata = RawMetadataStorage.get().findInputTypeMetadata(
       typeClass,
     );
     if (!inputTypeMetadata) {
@@ -179,7 +180,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLFields(
-    fields: BuiltFieldMetadata[],
+    fields: FieldMetadata[],
   ): GraphQLFieldConfigMap<unknown, unknown, unknown> {
     return objectFromEntries(
       fields.map<[string, GraphQLFieldConfig<unknown, unknown, unknown>]>(
@@ -195,7 +196,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLInputFields(
-    fields: BuiltFieldMetadata[],
+    fields: FieldMetadata[],
   ): GraphQLInputFieldConfigMap {
     return objectFromEntries(
       fields.map<[string, GraphQLInputFieldConfig]>(fieldMetadata => [
@@ -209,7 +210,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLOutputType(
-    metadata: TargetMetadata & PropertyMetadata & BuiltTypeMetadata,
+    metadata: TargetMetadata & PropertyMetadata & TypeMetadata,
   ): GraphQLOutputType {
     const outputType = getFirstDefinedValue(
       this.searchForGraphQLOutputType(metadata.type.value),
@@ -233,7 +234,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLInputType(
-    metadata: TargetMetadata & PropertyMetadata & BuiltTypeMetadata,
+    metadata: TargetMetadata & PropertyMetadata & TypeMetadata,
   ): GraphQLInputType {
     const inputType = getFirstDefinedValue(
       this.searchForGraphQLInputType(metadata.type.value),

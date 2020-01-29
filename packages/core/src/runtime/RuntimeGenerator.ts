@@ -1,13 +1,13 @@
 import createDebug from "debug";
 import { GraphQLFieldResolver } from "graphql";
 
-import BuiltQueryMetadata from "@src/metadata/builder/definitions/QueryMetadata";
+import QueryMetadata from "@src/interfaces/metadata/QueryMetadata";
 import { BuildSchemaConfig } from "@src/schema/schema-config";
 import ResolverData from "@src/interfaces/ResolverData";
 import { DynamicResolverInstance } from "@src/runtime/types";
-import completeValue from "@src/helpers/completeValue";
-import ParameterMetadata from "@src/metadata/storage/definitions/ParameterMetadata";
-import completeValues from "@src/helpers/completeValues";
+import completeValue from "@src/runtime/helpers/completeValue";
+import completeValues from "@src/runtime/helpers/completeValues";
+import ParameterMetadata from "@src/interfaces/metadata/parameters/ParameterMetadata";
 
 const debug = createDebug("@typegraphql/core:RuntimeGenerator");
 
@@ -20,7 +20,7 @@ export default class RuntimeGenerator<TContext extends object = {}> {
     target,
     propertyKey,
     parameters,
-  }: BuiltQueryMetadata): GraphQLFieldResolver<unknown, TContext, object> {
+  }: QueryMetadata): GraphQLFieldResolver<unknown, TContext, object> {
     const { container } = this.config;
     return (source, args, context, info) => {
       const resolverData: ResolverData<TContext> = {
@@ -64,7 +64,8 @@ export default class RuntimeGenerator<TContext extends object = {}> {
             parameterMetadata.parameterResolverClass,
             resolverData,
           ),
-          parameterResolver => parameterResolver.resolve(resolverData),
+          parameterResolver =>
+            parameterResolver.resolve(resolverData, parameterMetadata),
         ),
       );
   }

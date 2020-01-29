@@ -6,7 +6,7 @@ export interface TypeModifiers {
   listDepth: number;
 }
 
-export interface TypeMetadata {
+export interface TypeInfo {
   value: TypeValue;
   modifiers: TypeModifiers;
 }

@@ -1,13 +1,14 @@
 import createParameterDecorator from "@src/decorators/createParamDecorator";
-import ParameterResolver from "@src/interfaces/ParameterResolver";
-import ResolverData from "@src/interfaces/ResolverData";
+import SourceParameterResolver from "@src/runtime/parameters/SourceResolver";
 
-class SourceParameterResolver implements ParameterResolver {
-  resolve({ source }: ResolverData): unknown {
-    return source;
-  }
-}
-
+/**
+ * Parameter decorator that can be used
+ * to inject `source` property of resolver data
+ * into the resolver handler
+ *
+ * @example
+ * `sampleQuery(@Source() source: unknown): unknown {}`
+ */
 export default function Source(): ParameterDecorator {
   return createParameterDecorator(SourceParameterResolver);
 }

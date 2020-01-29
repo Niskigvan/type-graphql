@@ -1,4 +1,4 @@
-import isPromiseLike from "@src/helpers/isPromiseLike";
+import isPromiseLike from "@src/runtime/helpers/isPromiseLike";
 
 // TODO: use tuple trick from `Promise.all` for proper typings of `completeValues`
 type UnpackedPromises<TArray extends unknown[]> = TArray extends Array<

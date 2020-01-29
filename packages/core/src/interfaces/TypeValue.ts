@@ -1,16 +1,16 @@
 import {
   GraphQLScalarType,
   GraphQLObjectType,
-  GraphQLInputType,
+  GraphQLInputObjectType,
 } from "graphql";
 
 import ClassType from "@src/interfaces/ClassType";
 
-type SupportedGraphQLPrimitives =
+type SupportedGraphQLArtifacts =
   | GraphQLScalarType
   | GraphQLObjectType
-  | GraphQLInputType;
+  | GraphQLInputObjectType;
 
-type TypeValue = ClassType | SupportedGraphQLPrimitives | object | symbol; // enum | union
+type TypeValue = ClassType | SupportedGraphQLArtifacts | object | symbol; // enum | union
 
 export default TypeValue;

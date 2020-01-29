@@ -1,95 +1,105 @@
 import createDebug from "debug";
 
 import ClassType from "@src/interfaces/ClassType";
-import ObjectTypeMetadata from "@src/metadata/storage/definitions/ObjectTypeMetadata";
-import FieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
-import ResolverMetadata from "@src/metadata/storage/definitions/ResolverMetadata";
-import QueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
-import ParameterMetadata from "@src/metadata/storage/definitions/ParameterMetadata";
+import RawObjectTypeMetadata from "@src/metadata/storage/definitions/ObjectTypeMetadata";
+import RawFieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
+import RawResolverMetadata from "@src/metadata/storage/definitions/ResolverMetadata";
+import RawQueryMetadata from "@src/metadata/storage/definitions/QueryMetadata";
+import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/ParameterMetadata";
 import MetadataWeakMap from "@src/metadata/storage/MetadataWeakMap";
 import MetadataArrayWeakMap from "@src/metadata/storage/MetadataArrayWeakMap";
-import InputTypeMetadata from "@src/metadata/storage/definitions/InputTypeMetadata";
+import RawInputTypeMetadata from "@src/metadata/storage/definitions/InputTypeMetadata";
 
 const debug = createDebug("@typegraphql/core:MetadataStorage");
 
-export default class MetadataStorage {
+export default class RawMetadataStorage {
   protected objectTypesMetadataStorage = new MetadataWeakMap<
-    ObjectTypeMetadata
+    RawObjectTypeMetadata
   >();
   protected inputTypesMetadataStorage = new MetadataWeakMap<
-    InputTypeMetadata
+    RawInputTypeMetadata
   >();
-  protected fieldsMetadataStorage = new MetadataArrayWeakMap<FieldMetadata>();
-  protected resolversMetadataStorage = new MetadataWeakMap<ResolverMetadata>();
-  protected queriesMetadataStorage = new MetadataArrayWeakMap<QueryMetadata>();
+  protected fieldsMetadataStorage = new MetadataArrayWeakMap<
+    RawFieldMetadata
+  >();
+  protected resolversMetadataStorage = new MetadataWeakMap<
+    RawResolverMetadata
+  >();
+  protected queriesMetadataStorage = new MetadataArrayWeakMap<
+    RawQueryMetadata
+  >();
   protected parametersMetadataStorage = new MetadataArrayWeakMap<
-    ParameterMetadata
+    RawParameterMetadata
   >();
 
   protected constructor() {
     debug("created MetadataStorage instance");
   }
 
-  static get(): MetadataStorage {
+  static get(): RawMetadataStorage {
     // TODO: investigate using package scoped storage
-    if (!global.TypeGraphQLMetadataStorage) {
-      global.TypeGraphQLMetadataStorage = new MetadataStorage();
+    if (!global.TypeGraphQLRawMetadataStorage) {
+      global.TypeGraphQLRawMetadataStorage = new RawMetadataStorage();
     }
-    return global.TypeGraphQLMetadataStorage;
+    return global.TypeGraphQLRawMetadataStorage;
   }
 
-  collectObjectTypeMetadata(metadata: ObjectTypeMetadata): void {
+  collectObjectTypeMetadata(metadata: RawObjectTypeMetadata): void {
     debug("collecting object type metadata", metadata);
     this.objectTypesMetadataStorage.collect(metadata);
   }
   findObjectTypeMetadata(
     objectTypeClass: ClassType,
-  ): ObjectTypeMetadata | undefined {
+  ): RawObjectTypeMetadata | undefined {
     return this.objectTypesMetadataStorage.find(objectTypeClass);
   }
 
-  collectInputTypeMetadata(metadata: InputTypeMetadata): void {
+  collectInputTypeMetadata(metadata: RawInputTypeMetadata): void {
     debug("collecting input type metadata", metadata);
     this.inputTypesMetadataStorage.collect(metadata);
   }
   findInputTypeMetadata(
     inputTypeClass: ClassType,
-  ): InputTypeMetadata | undefined {
+  ): RawInputTypeMetadata | undefined {
     return this.inputTypesMetadataStorage.find(inputTypeClass);
   }
 
-  collectFieldMetadata(metadata: FieldMetadata): void {
+  collectFieldMetadata(metadata: RawFieldMetadata): void {
     debug("collecting field metadata", metadata);
     this.fieldsMetadataStorage.collect(metadata);
   }
-  findFieldsMetadata(objectClass: ClassType): FieldMetadata[] | undefined {
+  findFieldsMetadata(objectClass: ClassType): RawFieldMetadata[] | undefined {
     return this.fieldsMetadataStorage.find(objectClass);
   }
 
-  collectResolverMetadata(metadata: ResolverMetadata): void {
+  collectResolverMetadata(metadata: RawResolverMetadata): void {
     debug("collecting resolver metadata", metadata);
     this.resolversMetadataStorage.collect(metadata);
   }
-  findResolverMetadata(resolverClass: ClassType): ResolverMetadata | undefined {
+  findResolverMetadata(
+    resolverClass: ClassType,
+  ): RawResolverMetadata | undefined {
     return this.resolversMetadataStorage.find(resolverClass);
   }
 
-  collectQueryMetadata(metadata: QueryMetadata): void {
+  collectQueryMetadata(metadata: RawQueryMetadata): void {
     debug("collecting query metadata", metadata);
     this.queriesMetadataStorage.collect(metadata);
   }
-  findQueriesMetadata(resolverClass: ClassType): QueryMetadata[] | undefined {
+  findQueriesMetadata(
+    resolverClass: ClassType,
+  ): RawQueryMetadata[] | undefined {
     return this.queriesMetadataStorage.find(resolverClass);
   }
 
-  collectParameterMetadata(metadata: ParameterMetadata): void {
+  collectParameterMetadata(metadata: RawParameterMetadata): void {
     debug("collecting parameter metadata", metadata);
     this.parametersMetadataStorage.collect(metadata);
   }
   findParametersMetadata(
     resolverClass: ClassType,
     propertyKey: string | symbol,
-  ): ParameterMetadata[] | undefined {
+  ): RawParameterMetadata[] | undefined {
     const resolverClassParameters = this.parametersMetadataStorage.find(
       resolverClass,
     );

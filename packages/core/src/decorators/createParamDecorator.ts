@@ -1,13 +1,15 @@
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 import ClassType from "@src/interfaces/ClassType";
 import ParameterResolver from "@src/interfaces/ParameterResolver";
+import ParamKind from "@src/interfaces/ParamKind";
 
 export default function createParameterDecorator<TContext extends object = {}>(
   parameterResolver: ClassType<ParameterResolver<TContext>>,
 ): ParameterDecorator {
   return (prototype, propertyKey, parameterIndex) => {
     const target = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
-    MetadataStorage.get().collectParameterMetadata({
+    RawMetadataStorage.get().collectParameterMetadata({
+      kind: ParamKind.Standard,
       target,
       propertyKey,
       parameterIndex,

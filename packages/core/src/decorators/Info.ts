@@ -1,13 +1,14 @@
 import createParameterDecorator from "@src/decorators/createParamDecorator";
-import ParameterResolver from "@src/interfaces/ParameterResolver";
-import ResolverData from "@src/interfaces/ResolverData";
+import InfoParameterResolver from "@src/runtime/parameters/InfoResolver";
 
-class InfoParameterResolver implements ParameterResolver {
-  resolve({ info }: ResolverData): unknown {
-    return info;
-  }
-}
-
+/**
+ * Parameter decorator that can be used
+ * to inject `info` property of resolver data
+ * into the resolver handler
+ *
+ * @example
+ * `sampleQuery(@Info() info: GraphQLResolveInfo): unknown {}`
+ */
 export default function Info(): ParameterDecorator {
   return createParameterDecorator(InfoParameterResolver);
 }

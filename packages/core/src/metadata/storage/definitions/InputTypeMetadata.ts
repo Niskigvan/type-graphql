@@ -4,7 +4,7 @@ import {
   DescriptionMetadata,
 } from "@src/metadata/storage/definitions/common";
 
-export default interface InputTypeMetadata
+export default interface RawInputTypeMetadata
   extends TargetMetadata,
     SchemaNameMetadata,
     DescriptionMetadata {}

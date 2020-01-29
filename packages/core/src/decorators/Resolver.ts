@@ -1,5 +1,5 @@
 import TypedClassDecorator from "@src/interfaces/TypedClassDecorator";
-import MetadataStorage from "@src/metadata/storage/MetadataStorage";
+import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
 
 /**
  * Decorator used to register the class as resolver class
@@ -7,7 +7,7 @@ import MetadataStorage from "@src/metadata/storage/MetadataStorage";
  */
 export default function Resolver(): TypedClassDecorator {
   return target => {
-    MetadataStorage.get().collectResolverMetadata({
+    RawMetadataStorage.get().collectResolverMetadata({
       target,
     });
   };

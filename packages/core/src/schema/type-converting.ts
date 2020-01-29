@@ -7,7 +7,7 @@ import {
   GraphQLNullableType,
   GraphQLList,
 } from "graphql";
-import { TypeModifiers } from "@src/metadata/builder/definitions/TypeMetadata";
+import { TypeModifiers } from "@src/interfaces/metadata/TypeMetadata";
 
 export function convertTypeIfScalar(
   type: unknown,

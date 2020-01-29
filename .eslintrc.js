@@ -12,7 +12,6 @@ module.exports = {
     ],
     ecmaVersion: 2018,
     sourceType: "module",
-    createDefaultProgram: true,
   },
   plugins: ["@typescript-eslint", "eslint-plugin-jest"],
   extends: [
@@ -57,6 +56,10 @@ module.exports = {
     "@typescript-eslint/no-empty-function": [
       "error",
       { allow: ["protected-constructors", "private-constructors"] },
+    ],
+    "@typescript-eslint/no-empty-interface": [
+      "error",
+      { allowSingleExtends: true },
     ],
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-inferrable-types": [

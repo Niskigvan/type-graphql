@@ -7,7 +7,7 @@ import {
   ExplicitTypeMetadata,
 } from "@src/metadata/storage/definitions/common";
 
-export default interface QueryMetadata
+export default interface RawQueryMetadata
   extends TargetMetadata,
     PropertyMetadata,
     SchemaNameMetadata,
