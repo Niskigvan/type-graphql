@@ -43,13 +43,13 @@ export default function Args(
   maybeSingleArgOptions?: SingleArgOptions,
 ): ParameterDecorator {
   return (prototype, propertyKey, parameterIndex) => {
-    const target = prototype.constructor as ClassType;
+    const targetClass = prototype.constructor as ClassType;
     if (typeof argumentNameOrSpreadOptions === "string") {
       const schemaName = argumentNameOrSpreadOptions;
       const options = maybeSingleArgOptions ?? {};
       RawMetadataStorage.get().collectParameterMetadata({
         kind: ParamKind.SingleArg,
-        target,
+        targetClass,
         propertyKey,
         parameterIndex,
         parameterResolverClass: SingleArgParameterResolver,
@@ -62,7 +62,7 @@ export default function Args(
       const options = argumentNameOrSpreadOptions ?? {};
       RawMetadataStorage.get().collectParameterMetadata({
         kind: ParamKind.SpreadArgs,
-        target,
+        targetClass,
         propertyKey,
         parameterIndex,
         parameterResolverClass: SpreadArgsParameterResolver,

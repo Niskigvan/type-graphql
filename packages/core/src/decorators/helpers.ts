@@ -5,7 +5,7 @@ import {
 } from "@src/errors";
 import { ExplicitTypeable, Nameable } from "@src/decorators/types";
 import {
-  TargetMetadata,
+  TargetClassMetadata,
   PropertyMetadata,
 } from "@src/metadata/storage/definitions/common";
 import parseStringOrSymbol from "@src/helpers/parseStringOrSymbol";
@@ -18,7 +18,7 @@ export interface TypeDecoratorParams<TOptions extends ExplicitTypeable> {
 export function parseDecoratorParameters<TOptions extends ExplicitTypeable>(
   maybeExplicitTypeFnOrOptions: ExplicitTypeFn | TOptions | undefined,
   maybeOptions: TOptions | undefined,
-  metadata: TargetMetadata & PropertyMetadata,
+  metadata: TargetClassMetadata & PropertyMetadata,
 ): TypeDecoratorParams<TOptions> {
   if (!maybeExplicitTypeFnOrOptions) {
     return {};
@@ -39,7 +39,7 @@ export function parseDecoratorParameters<TOptions extends ExplicitTypeable>(
 export function getSchemaName(
   options: Nameable,
   propertyKey: string | symbol,
-  metadata: TargetMetadata,
+  metadata: TargetClassMetadata,
 ): string {
   const schemaName = options.schemaName ?? parseStringOrSymbol(propertyKey);
   if (!schemaName) {

@@ -2,7 +2,7 @@ import RawFieldMetadata from "@src/metadata/storage/definitions/FieldMetadata";
 import { TypeInfo } from "@src/interfaces/metadata/TypeMetadata";
 import {
   PropertyMetadata,
-  TargetMetadata,
+  TargetClassMetadata,
   ExplicitTypeMetadata,
   NullableMetadata,
 } from "@src/metadata/storage/definitions/common";
@@ -17,20 +17,20 @@ import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/P
 const bannedReflectedTypes: Function[] = [Promise, Array, Object, Function];
 
 function getReflectedPropertyType(
-  metadata: PropertyMetadata & TargetMetadata,
+  metadata: PropertyMetadata & TargetClassMetadata,
 ): Function | undefined {
   return Reflect.getMetadata(
     "design:type",
-    metadata.target.prototype,
+    metadata.targetClass.prototype,
     metadata.propertyKey,
   );
 }
 function getReflectedMethodType(
-  metadata: PropertyMetadata & TargetMetadata,
+  metadata: PropertyMetadata & TargetClassMetadata,
 ): Function | undefined {
   return Reflect.getMetadata(
     "design:returntype",
-    metadata.target.prototype,
+    metadata.targetClass.prototype,
     metadata.propertyKey,
   );
 }
@@ -40,7 +40,7 @@ function getReflectedParameterType(
 ): Function | undefined {
   const parametersTypes = Reflect.getMetadata(
     "design:paramtypes",
-    metadata.target.prototype,
+    metadata.targetClass.prototype,
     metadata.propertyKey,
   );
   return parametersTypes?.[metadata.parameterIndex];
@@ -59,7 +59,7 @@ function unwrapExplicitType(
 }
 
 function getTypeMetadata(
-  metadata: TargetMetadata &
+  metadata: TargetClassMetadata &
     PropertyMetadata &
     ExplicitTypeMetadata &
     NullableMetadata &

@@ -26,7 +26,7 @@ import FieldMetadata from "@src/interfaces/metadata/FieldMetadata";
 import { TypeMetadata } from "@src/interfaces/metadata/common";
 import CannotDetermineOutputTypeError from "@src/errors/CannotDetermineOutputTypeError";
 import {
-  TargetMetadata,
+  TargetClassMetadata,
   PropertyMetadata,
   SchemaNameMetadata,
   DescriptionMetadata,
@@ -138,7 +138,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
       SchemaNameMetadata &
         DescriptionMetadata &
         TypeMetadata &
-        TargetMetadata &
+        TargetClassMetadata &
         PropertyMetadata
     >,
   ): GraphQLFieldConfigArgumentMap {
@@ -261,7 +261,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLOutputType(
-    metadata: TargetMetadata & PropertyMetadata & TypeMetadata,
+    metadata: TargetClassMetadata & PropertyMetadata & TypeMetadata,
   ): GraphQLOutputType {
     const outputType = getFirstDefinedValue(
       this.searchForGraphQLOutputType(metadata.type.value),
@@ -285,7 +285,7 @@ export default class SchemaGenerator<TContext extends object = {}> {
   }
 
   private getGraphQLInputType(
-    metadata: TargetMetadata & PropertyMetadata & TypeMetadata,
+    metadata: TargetClassMetadata & PropertyMetadata & TypeMetadata,
   ): GraphQLInputType {
     const inputType = getFirstDefinedValue(
       this.searchForGraphQLInputType(metadata.type.value),

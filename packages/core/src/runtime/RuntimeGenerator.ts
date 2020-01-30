@@ -17,7 +17,7 @@ export default class RuntimeGenerator<TContext extends object = {}> {
   }
 
   generateQueryResolveHandler({
-    target,
+    targetClass,
     propertyKey,
     parameters,
   }: QueryMetadata): GraphQLFieldResolver<unknown, TContext, object> {
@@ -33,7 +33,7 @@ export default class RuntimeGenerator<TContext extends object = {}> {
         this.getResolvedParameters(parameters, resolverData),
         resolvedParameters =>
           completeValue(
-            container.getInstance(target, resolverData),
+            container.getInstance(targetClass, resolverData),
             (resolverInstance: DynamicResolverInstance) => {
               // workaround until TS support indexing by symbol
               // https://github.com/microsoft/TypeScript/issues/1863

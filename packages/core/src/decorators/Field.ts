@@ -44,19 +44,19 @@ export default function Field(
   maybeOptions?: FieldOptions,
 ): TypedPropertyDecorator {
   return (prototype, propertyKey) => {
-    const target = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
+    const targetClass = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
     const { explicitTypeFn, options = {} } = parseDecoratorParameters(
       maybeExplicitTypeFnOrOptions,
       maybeOptions,
       {
-        target,
+        targetClass,
         propertyKey,
       },
     );
     RawMetadataStorage.get().collectFieldMetadata({
-      target,
+      targetClass,
       propertyKey,
-      schemaName: getSchemaName(options, propertyKey, { target }),
+      schemaName: getSchemaName(options, propertyKey, { targetClass }),
       description: options.description,
       nullable: options.nullable,
       explicitTypeFn,

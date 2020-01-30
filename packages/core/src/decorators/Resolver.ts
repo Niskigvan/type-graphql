@@ -6,9 +6,9 @@ import RawMetadataStorage from "@src/metadata/storage/RawMetadataStorage";
  * which is grouping queries, mutation and subscription handlers
  */
 export default function Resolver(): TypedClassDecorator {
-  return target => {
+  return targetClass => {
     RawMetadataStorage.get().collectResolverMetadata({
-      target,
+      targetClass,
     });
   };
 }

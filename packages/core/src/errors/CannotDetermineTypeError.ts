@@ -1,6 +1,6 @@
 import {
   PropertyMetadata,
-  TargetMetadata,
+  TargetClassMetadata,
 } from "@src/metadata/storage/definitions/common";
 import { TypeMetadata } from "@src/interfaces/metadata/common";
 
@@ -8,10 +8,10 @@ export default class CannotDetermineTypeError extends Error {
   constructor(
     typeKind: "input" | "output",
     {
-      target,
+      targetClass,
       propertyKey,
       type,
-    }: TargetMetadata & PropertyMetadata & TypeMetadata,
+    }: TargetClassMetadata & PropertyMetadata & TypeMetadata,
   ) {
     // TODO: add support for other kind of types
     const typeName =
@@ -19,7 +19,7 @@ export default class CannotDetermineTypeError extends Error {
     super(
       // TODO: add message about using input type or something as a type value
       `Cannot determine GraphQL ${typeKind} type '${typeName}' ` +
-        `of ${target.name}#${propertyKey.toString()}!`,
+        `of ${targetClass.name}#${propertyKey.toString()}!`,
     );
 
     Object.setPrototypeOf(this, new.target.prototype);

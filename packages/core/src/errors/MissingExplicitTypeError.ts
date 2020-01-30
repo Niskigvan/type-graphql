@@ -1,5 +1,5 @@
 import {
-  TargetMetadata,
+  TargetClassMetadata,
   PropertyMetadata,
 } from "@src/metadata/storage/definitions/common";
 import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/ParameterMetadata";
@@ -7,10 +7,10 @@ import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/P
 export default class MissingExplicitTypeError extends Error {
   constructor(
     {
-      target,
+      targetClass,
       propertyKey,
       parameterIndex,
-    }: TargetMetadata & PropertyMetadata & Partial<RawParameterMetadata>,
+    }: TargetClassMetadata & PropertyMetadata & Partial<RawParameterMetadata>,
     typeValue: Function | undefined,
   ) {
     const isParameter = parameterIndex != null;
@@ -23,7 +23,7 @@ export default class MissingExplicitTypeError extends Error {
       errorMessage += `parameter #${parameterIndex!.toFixed(0)} of `;
     }
     errorMessage += `${
-      target.name
+      targetClass.name
     }#${propertyKey.toString()} in decorator option, e.g. `;
     if (isParameter) {
       errorMessage += `\`@Args("myArg", { typeFn: () => [String] })\`.`;

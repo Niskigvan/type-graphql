@@ -16,10 +16,10 @@ export interface InputTypeOptions extends Nameable, Descriptionable {}
 export default function InputType(
   options: InputTypeOptions = {},
 ): TypedClassDecorator {
-  return target => {
+  return targetClass => {
     RawMetadataStorage.get().collectInputTypeMetadata({
-      target,
-      schemaName: options.schemaName ?? target.name,
+      targetClass,
+      schemaName: options.schemaName ?? targetClass.name,
       description: options.description,
     });
   };

@@ -1,10 +1,10 @@
 import {
-  TargetMetadata,
+  TargetClassMetadata,
   SchemaNameMetadata,
   DescriptionMetadata,
 } from "@src/metadata/storage/definitions/common";
 
 export default interface RawInputTypeMetadata
-  extends TargetMetadata,
+  extends TargetClassMetadata,
     SchemaNameMetadata,
     DescriptionMetadata {}

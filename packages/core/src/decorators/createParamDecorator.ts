@@ -7,10 +7,10 @@ export default function createParameterDecorator<TContext extends object = {}>(
   parameterResolver: ClassType<ParameterResolver<TContext>>,
 ): ParameterDecorator {
   return (prototype, propertyKey, parameterIndex) => {
-    const target = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
+    const targetClass = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
     RawMetadataStorage.get().collectParameterMetadata({
       kind: ParamKind.Standard,
-      target,
+      targetClass,
       propertyKey,
       parameterIndex,
       parameterResolverClass: parameterResolver,

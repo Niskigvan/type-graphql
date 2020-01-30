@@ -1,8 +1,8 @@
 import ClassType from "@src/interfaces/ClassType";
 import ExplicitTypeFn from "@src/interfaces/ExplicitTypeFn";
 
-export interface TargetMetadata {
-  target: ClassType;
+export interface TargetClassMetadata {
+  targetClass: ClassType;
 }
 
 export interface PropertyMetadata {

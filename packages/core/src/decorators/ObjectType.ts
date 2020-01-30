@@ -32,10 +32,10 @@ export default function ObjectType(
     implementedInterfaceClasses.concat(options.implements);
   }
 
-  return target => {
+  return targetClass => {
     RawMetadataStorage.get().collectObjectTypeMetadata({
-      target,
-      schemaName: options.schemaName ?? target.name,
+      targetClass,
+      schemaName: options.schemaName ?? targetClass.name,
       description: options.description,
       implementedInterfaceClasses,
     });

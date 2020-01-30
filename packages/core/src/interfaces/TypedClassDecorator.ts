@@ -1,7 +1,7 @@
 import ClassType from "@src/interfaces/ClassType";
 
-type TypedClassDecorator = <TTarget extends ClassType>(
-  target: TTarget,
-) => TTarget | void;
+type TypedClassDecorator = <TTargetClass extends ClassType>(
+  targetClass: TTargetClass,
+) => TTargetClass | void;
 
 export default TypedClassDecorator;

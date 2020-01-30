@@ -94,7 +94,7 @@ describe("Queries > parameters > custom", () => {
         "parameterIndex": 0,
         "parameterResolverClass": [Function],
         "propertyKey": "sampleQuery",
-        "target": [Function],
+        "targetClass": [Function],
       }
     `);
   });

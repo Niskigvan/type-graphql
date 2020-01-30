@@ -1,13 +1,16 @@
 import {
   PropertyMetadata,
-  TargetMetadata,
+  TargetClassMetadata,
 } from "@src/metadata/storage/definitions/common";
 
 export default class MultipleArgsUsageError extends Error {
-  constructor({ target, propertyKey }: TargetMetadata & PropertyMetadata) {
+  constructor({
+    targetClass,
+    propertyKey,
+  }: TargetClassMetadata & PropertyMetadata) {
     super(
       `Detected multiple '@Args()' decorators as parameters ` +
-        `of ${target.name}#${propertyKey.toString()} method. ` +
+        `of ${targetClass.name}#${propertyKey.toString()} method. ` +
         `You can only use single '@Args()' parameter pointing to ` +
         `an '@InputType' class at the same time.`,
     );

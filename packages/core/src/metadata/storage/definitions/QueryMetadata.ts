@@ -1,5 +1,5 @@
 import {
-  TargetMetadata,
+  TargetClassMetadata,
   SchemaNameMetadata,
   DescriptionMetadata,
   PropertyMetadata,
@@ -8,7 +8,7 @@ import {
 } from "@src/metadata/storage/definitions/common";
 
 export default interface RawQueryMetadata
-  extends TargetMetadata,
+  extends TargetClassMetadata,
     PropertyMetadata,
     SchemaNameMetadata,
     NullableMetadata,
