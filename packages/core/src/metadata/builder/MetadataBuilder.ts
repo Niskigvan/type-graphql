@@ -22,6 +22,11 @@ import isTypeValueClassType from "@src/helpers/isTypeValueClassType";
 import SimultaneousArgsUsageError from "@src/errors/SimultaneousArgsUsageError";
 import WrongArgsTypeError from "@src/errors/WrongArgsTypeError";
 import MultipleArgsUsageError from "@src/errors/MultipleArgsUsageError";
+import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/ParameterMetadata";
+import {
+  TargetClassMetadata,
+  PropertyMetadata,
+} from "@src/metadata/storage/definitions/common";
 
 const debug = createDebug("@typegraphql/core:MetadataBuilder");
 
@@ -65,7 +70,7 @@ export default class MetadataBuilder<TContext extends object = {}> {
       throw new MissingFieldsError(typeClass);
     }
 
-    // TODO: refactor to a more generalized solution
+    // TODO: refactor to a more generalized solution [1]
     const objectTypeMetadata: ObjectTypeMetadata = {
       ...rawObjectTypeMetadata,
       fields: rawObjectTypeFieldsMetadata.map<FieldMetadata>(fieldMetadata => ({
@@ -103,7 +108,7 @@ export default class MetadataBuilder<TContext extends object = {}> {
       throw new MissingFieldsError(typeClass);
     }
 
-    // TODO: refactor to a more generalized solution
+    // TODO: refactor to a more generalized solution [1]
     const inputTypeMetadata: InputTypeMetadata = {
       ...rawInputTypeMetadata,
       fields: rawInputTypeFieldsMetadata.map<FieldMetadata>(fieldMetadata => ({
@@ -131,78 +136,120 @@ export default class MetadataBuilder<TContext extends object = {}> {
       throw new MissingClassMetadataError(resolverClass, "Resolver");
     }
 
-    const rawQueriesMetadata = RawMetadataStorage.get().findQueriesMetadata(
-      resolverClass,
-    );
-    // TODO: replace with a more sophisticated check - also for mutations and subscriptions
-    if (!rawQueriesMetadata || rawQueriesMetadata.length === 0) {
+    const rawQueriesMetadata =
+      RawMetadataStorage.get().findQueriesMetadata(resolverClass) ?? [];
+    const rawMutationsMetadata =
+      RawMetadataStorage.get().findMutationsMetadata(resolverClass) ?? [];
+    // TODO: also check for subscriptions and field resolvers
+    if (rawQueriesMetadata.length === 0 && rawMutationsMetadata.length === 0) {
       throw new MissingResolverMethodsError(resolverClass);
     }
 
     const resolverMetadata: ResolverMetadata = {
       ...rawResolverMetadata,
+      // TODO: refactor to a more generalized solution [2]
       queries: rawQueriesMetadata.map<QueryMetadata>(rawQueryMetadata => {
         const rawQueryParametersMetadata =
           RawMetadataStorage.get().findParametersMetadata(
             resolverClass,
             rawQueryMetadata.propertyKey,
           ) ?? [];
-        const spreadArgsMetadataLength = rawQueryParametersMetadata.filter(
-          it => it.kind === ParamKind.SpreadArgs,
-        ).length;
-        if (spreadArgsMetadataLength > 1) {
-          throw new MultipleArgsUsageError(rawQueryMetadata);
-        }
-        const singleArgMetadataLength = rawQueryParametersMetadata.filter(
-          it => it.kind === ParamKind.SingleArg,
-        ).length;
-        if (spreadArgsMetadataLength && singleArgMetadataLength) {
-          throw new SimultaneousArgsUsageError(rawQueryMetadata);
-        }
+        this.checkArgsParametersUsage(
+          rawQueryParametersMetadata,
+          rawQueryMetadata,
+        );
         return {
           ...rawQueryMetadata,
           type: getQueryTypeMetadata(
             rawQueryMetadata,
             this.config.nullableByDefault,
           ),
-          parameters: rawQueryParametersMetadata.map<ParameterMetadata>(
-            parameterMetadata => {
-              switch (parameterMetadata.kind) {
-                case ParamKind.SingleArg: {
-                  return {
-                    ...parameterMetadata,
-                    type: getQueryParameterTypeMetadata(
-                      parameterMetadata,
-                      this.config.nullableByDefault,
-                    ),
-                  };
-                }
-                case ParamKind.SpreadArgs: {
-                  const type = getQueryParameterTypeMetadata(
-                    parameterMetadata,
-                    this.config.nullableByDefault,
-                  );
-                  if (
-                    !isTypeValueClassType(type.value) ||
-                    type.modifiers.listDepth > 0
-                  ) {
-                    throw new WrongArgsTypeError(parameterMetadata);
-                  }
-                  return {
-                    ...parameterMetadata,
-                    type,
-                  };
-                }
-                default:
-                  return parameterMetadata;
-              }
-            },
-          ),
+          parameters: this.buildParametersMetadata(rawQueryParametersMetadata),
         };
       }),
+      // TODO: refactor to a more generalized solution [2]
+      mutations: rawMutationsMetadata.map<QueryMetadata>(
+        rawMutationMetadata => {
+          const rawQueryParametersMetadata =
+            RawMetadataStorage.get().findParametersMetadata(
+              resolverClass,
+              rawMutationMetadata.propertyKey,
+            ) ?? [];
+          this.checkArgsParametersUsage(
+            rawQueryParametersMetadata,
+            rawMutationMetadata,
+          );
+          return {
+            ...rawMutationMetadata,
+            type: getQueryTypeMetadata(
+              rawMutationMetadata,
+              this.config.nullableByDefault,
+            ),
+            parameters: this.buildParametersMetadata(
+              rawQueryParametersMetadata,
+            ),
+          };
+        },
+      ),
     };
 
     this.resolverMetadataByClassMap.set(resolverClass, resolverMetadata);
     return resolverMetadata;
+  }
+
+  private buildParametersMetadata(
+    rawParametersMetadata: RawParameterMetadata[],
+  ): ParameterMetadata[] {
+    return rawParametersMetadata.map<ParameterMetadata>(
+      rawParameterMetadata => {
+        switch (rawParameterMetadata.kind) {
+          case ParamKind.SingleArg: {
+            return {
+              ...rawParameterMetadata,
+              type: getQueryParameterTypeMetadata(
+                rawParameterMetadata,
+                this.config.nullableByDefault,
+              ),
+            };
+          }
+          case ParamKind.SpreadArgs: {
+            const type = getQueryParameterTypeMetadata(
+              rawParameterMetadata,
+              this.config.nullableByDefault,
+            );
+            if (
+              !isTypeValueClassType(type.value) ||
+              type.modifiers.listDepth > 0
+            ) {
+              throw new WrongArgsTypeError(rawParameterMetadata);
+            }
+            return {
+              ...rawParameterMetadata,
+              type,
+            };
+          }
+          default:
+            return rawParameterMetadata;
+        }
+      },
+    );
+  }
+
+  private checkArgsParametersUsage(
+    rawParametersMetadata: RawParameterMetadata[],
+    metadata: TargetClassMetadata & PropertyMetadata,
+  ): void {
+    const spreadArgsMetadataLength = rawParametersMetadata.filter(
+      it => it.kind === ParamKind.SpreadArgs,
+    ).length;
+    if (spreadArgsMetadataLength > 1) {
+      throw new MultipleArgsUsageError(metadata);
+    }
+    const singleArgMetadataLength = rawParametersMetadata.filter(
+      it => it.kind === ParamKind.SingleArg,
+    ).length;
+    if (spreadArgsMetadataLength && singleArgMetadataLength) {
+      throw new SimultaneousArgsUsageError(metadata);
+    }
   }
 }

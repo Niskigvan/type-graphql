@@ -8,6 +8,7 @@ export { default as createParamDecorator } from "@src/decorators/createParamDeco
 export { default as Field, FieldOptions } from "@src/decorators/Field";
 export { default as Info } from "@src/decorators/Info";
 export { default as InputType } from "@src/decorators/InputType";
+export { default as Mutation } from "@src/decorators/Mutation";
 export {
   default as ObjectType,
   ObjectTypeOptions,

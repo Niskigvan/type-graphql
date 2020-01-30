@@ -9,6 +9,7 @@ import RawParameterMetadata from "@src/metadata/storage/definitions/parameters/P
 import MetadataWeakMap from "@src/metadata/storage/MetadataWeakMap";
 import MetadataArrayWeakMap from "@src/metadata/storage/MetadataArrayWeakMap";
 import RawInputTypeMetadata from "@src/metadata/storage/definitions/InputTypeMetadata";
+import RawMutationMetadata from "@src/metadata/storage/definitions/MutationMetadata";
 
 const debug = createDebug("@typegraphql/core:MetadataStorage");
 
@@ -27,6 +28,9 @@ export default class RawMetadataStorage {
   >();
   protected queriesMetadataStorage = new MetadataArrayWeakMap<
     RawQueryMetadata
+  >();
+  protected mutationsMetadataStorage = new MetadataArrayWeakMap<
+    RawMutationMetadata
   >();
   protected parametersMetadataStorage = new MetadataArrayWeakMap<
     RawParameterMetadata
@@ -90,6 +94,16 @@ export default class RawMetadataStorage {
     resolverClass: ClassType,
   ): RawQueryMetadata[] | undefined {
     return this.queriesMetadataStorage.find(resolverClass);
+  }
+
+  collectMutationMetadata(metadata: RawMutationMetadata): void {
+    debug("collecting mutation metadata", metadata);
+    this.mutationsMetadataStorage.collect(metadata);
+  }
+  findMutationsMetadata(
+    resolverClass: ClassType,
+  ): RawMutationMetadata[] | undefined {
+    return this.mutationsMetadataStorage.find(resolverClass);
   }
 
   collectParameterMetadata(metadata: RawParameterMetadata): void {

@@ -6,7 +6,7 @@ import TestResolver from "@tests/helpers/TestResolver";
 export default async function getPrintedType(
   typeClass: ClassType,
   typeName = typeClass.name,
-  options?: Partial<BuildSchemaOptions>,
+  options?: Omit<BuildSchemaOptions, "resolvers" | "orphanedTypes">,
 ): Promise<string> {
   const schema = await buildSchema({
     orphanedTypes: [typeClass],

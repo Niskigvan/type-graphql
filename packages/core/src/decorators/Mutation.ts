@@ -13,7 +13,7 @@ import {
 } from "@src/decorators/helpers";
 import ClassType from "@src/interfaces/ClassType";
 
-export interface QueryOptions
+export interface MutationOptions
   extends Nameable,
     Descriptionable,
     Nullable,
@@ -21,27 +21,29 @@ export interface QueryOptions
 
 /**
  * Decorator used to register the class method
- * as a field of "Query" object type in GraphQL schema, e.g.:
+ * as a field of "Mutation" object type in GraphQL schema, e.g.:
  *
  * ```graphql
- * type Query {
+ * type Mutation {
  *  myMethod: SomeType!
  * }
  * ```
  */
-export default function Query(options?: QueryOptions): TypedMethodDecorator;
-export default function Query(
+export default function Mutation(
+  options?: MutationOptions,
+): TypedMethodDecorator;
+export default function Mutation(
   /**
    * Function that returns an explicit type to overwrite
    * or enhance the built-in TypeScript type reflection system,
-   * e.g. `@Query(returns => [String])`
+   * e.g. `@Mutation(returns => [String])`
    */
   explicitTypeFn: ExplicitTypeFn,
-  options?: QueryOptions,
+  options?: MutationOptions,
 ): TypedMethodDecorator;
-export default function Query(
-  maybeExplicitTypeFnOrOptions?: ExplicitTypeFn | QueryOptions,
-  maybeOptions?: QueryOptions,
+export default function Mutation(
+  maybeExplicitTypeFnOrOptions?: ExplicitTypeFn | MutationOptions,
+  maybeOptions?: MutationOptions,
 ): TypedMethodDecorator {
   return (prototype, propertyKey) => {
     const targetClass = prototype.constructor as ClassType; // FIXME: fix typed decorator signature
@@ -53,7 +55,7 @@ export default function Query(
         propertyKey,
       },
     );
-    RawMetadataStorage.get().collectQueryMetadata({
+    RawMetadataStorage.get().collectMutationMetadata({
       targetClass,
       propertyKey,
       schemaName: getSchemaName(options, propertyKey, { targetClass }),

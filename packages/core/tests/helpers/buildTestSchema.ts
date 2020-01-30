@@ -7,7 +7,7 @@ export default async function buildTestSchema(
   options: Partial<BuildSchemaOptions>,
 ): Promise<GraphQLSchema> {
   return buildSchema({
-    resolvers: [TestResolver, ...(options.resolvers ?? [])],
     ...options,
+    resolvers: [TestResolver, ...(options.resolvers ?? [])],
   });
 }
